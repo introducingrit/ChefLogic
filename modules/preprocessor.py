@@ -82,7 +82,16 @@ def build_ingredient_text(ingredient_list: list) -> str:
 def preprocess_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """Add ingredient_text column used by the TF-IDF engine."""
     df = df.copy()
-    df['ingredient_text'] = df['ingredients'].apply(build_ingredient_text)
+
+    def combine_name_ingredients(row):
+        # Clean the name just like an ingredient to get meaningful keywords
+        name_cleaned = clean_ingredient(str(row['name']))
+        # Clean the ingredients list
+        ingreds_cleaned = build_ingredient_text(row['ingredients'])
+        # Combine both, ensuring no leading/trailing whitespace
+        return f"{name_cleaned} {ingreds_cleaned}".strip()
+
+    df['ingredient_text'] = df.apply(combine_name_ingredients, axis=1)
     return df
 
 

@@ -59,13 +59,31 @@ def apply_filters(
 
     if dietary and dietary in DIETARY_TAGS:
         keywords = DIETARY_TAGS[dietary]
+        MEAT_KEYWORDS = [
+            'chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
+            'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'bacon',
+            'ham', 'steak', 'meat', 'anchovy', 'sardine', 'tuna', 'salmon'
+        ]
 
-        def matches_dietary(raw_tags):
+        def matches_dietary(row):
+            raw_tags = row.get('tags', [])
             tags = _parse_tags(raw_tags)
             tags_lower = [str(t).lower() for t in tags]
-            return any(k in tag for k in keywords for tag in tags_lower)
 
-        mask &= df['tags'].apply(matches_dietary)
+            # Standard tag match
+            has_tag = any(k in tag for k in keywords for tag in tags_lower)
+
+            # Strict vegetarian/vegan check: exclude if name or ingredients contain meat
+            if dietary in ['vegetarian', 'vegan']:
+                name_low = str(row.get('name', '')).lower()
+                ingred_low = str(row.get('ingredient_text', '')).lower()
+                is_meat = any(mk in name_low or mk in ingred_low for mk in MEAT_KEYWORDS)
+                if is_meat:
+                    return False
+
+            return has_tag
+
+        mask &= df.apply(matches_dietary, axis=1)
 
     if max_time:
         try:

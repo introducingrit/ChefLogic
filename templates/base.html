@@ -26,14 +26,8 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
 
-    <div class="nav-left">
-      <a href="{{ url_for('main.all_recipes') }}"
-         class="nav-action-link nav-pill nav-browse-pill {% if request.endpoint == 'main.all_recipes' %}nav-pill-active{% endif %}">
-         <span class="action-icon">🌍</span> <span class="nav-pill-label">All Recipes</span>
-      </a>
-    </div>
-
-    <!-- Brand: centered -->
+    <!-- Brand: centered (Only on Home) -->
+    {% if request.endpoint == 'main.index' %}
     <a href="{{ url_for('main.index') }}" class="nav-brand centered" aria-label="ChefLogic home">
       <span class="brand-icon">🍳</span>
       <span class="brand-text-block">
@@ -41,6 +35,7 @@
         <span class="brand-tagline">AI Recipe Discovery</span>
       </span>
     </a>
+    {% endif %}
 
     <div class="nav-right">
       <a href="{{ url_for('main.favourites') }}"

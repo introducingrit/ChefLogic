@@ -22,10 +22,11 @@ MOOD_MAP = {
     },
     'sweet': {
         'emoji': '🍰', 'label': 'Sweets & Desserts',
-        'keywords': ['dessert', 'chocolate', 'cake', 'sweet', 'sugar', 'pastry',
+        'keywords': ['dessert', 'chocolate', 'cake', 'sugar', 'pastry',
                      'cookie', 'brownie', 'ice cream', 'tiramisu', 'pudding', 'halwa',
-                     'gulab', 'ladoo', 'barfi', 'cream', 'tart', 'mousse', 'cheesecake',
-                     'fudge', 'caramel', 'maple', 'honey', 'waffle', 'pancake'],
+                     'gulab', 'ladoo', 'barfi', 'tart', 'mousse', 'cheesecake',
+                     'fudge', 'caramel', 'maple', 'waffle', 'pancake', 'custard',
+                     'muffin', 'donut', 'pie', 'sorbet', 'baklava', 'syrup'],
         'description': 'Indulge your sweet tooth!',
     },
     'comfort': {
@@ -197,7 +198,17 @@ class Recommender:
         # Score each recipe by how many mood keywords appear in its name + ingredient_text
         def score_row(row):
             haystack = (str(row.get('name', '')) + ' ' + str(row.get('ingredient_text', ''))).lower()
-            return sum(1 for kw in keywords if kw.lower() in haystack)
+            haystack_words = haystack.replace(',', ' ').replace('.', ' ').split()
+
+            # Strict exclusion for desserts: if it has meat, it's not a dessert mood
+            if mood_key == 'sweet':
+                MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
+                                 'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
+                if any(mk in haystack for mk in MEAT_KEYWORDS):
+                    return 0
+
+            # Score based on full word matches to avoid "tart" matching "tartare"
+            return sum(1 for kw in keywords if kw.lower() in haystack_words or f" {kw.lower()} " in f" {haystack} ")
 
         df = df.copy()
         df['_mood_score'] = df.apply(score_row, axis=1)
