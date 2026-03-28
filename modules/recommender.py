@@ -44,13 +44,12 @@ MOOD_MAP = {
                      'bowl', 'wrap', 'edamame', 'sashimi', 'poké'],
         'description': 'Nutritious and feel-good meals.',
     },
-    'quick': {
-        'emoji': '⚡', 'label': 'Quick (≤ 30 min)',
-        'keywords': ['stir-fry', 'scramble', 'sandwich', 'toast', 'wrap', 'omelette',
-                     'fried rice', 'noodle', 'pizza', 'quesadilla', 'taco',
-                     'sauté', 'steak', 'burger', 'pita', 'flatbread'],
-        'max_minutes': 30,
-        'description': 'Fast and delicious in under 30 minutes.',
+    'beverages': {
+        'emoji': '🍹', 'label': 'Beverages',
+        'keywords': ['coffee', 'tea', 'milkshake', 'juice', 'mocktail', 'smoothie', 
+                     'shake', 'latte', 'cappuccino', 'espresso', 'drink', 'beverage',
+                     'lemonade', 'soda', 'cocktail', 'cooler', 'oreo shake', 'frappe'],
+        'description': 'Refreshing drinks, coffees, and shakes.',
     },
     'seafood': {
         'emoji': '🦐', 'label': 'Seafood Feast',
