@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}My Favourites — ChefLogic{% endblock %}
+{% block meta_desc %}Your saved favourite recipes on ChefLogic{% endblock %}
+
+{% block content %}
+<section class="results-section" aria-labelledby="favs-heading">
+  <div class="results-header">
+    <a href="{{ url_for('main.index') }}" class="back-btn" aria-label="Back to home">← Back</a>
+    <div class="results-meta">
+      <h1 id="favs-heading" class="results-title">
+        ❤️ My <span class="gradient-text">Favourites</span>
+      </h1>
+      <p class="results-count" id="fav-count">Loading your saved recipes…</p>
+    </div>
+    <button class="btn-secondary" id="clear-favs-btn" onclick="clearAllFavourites()" style="display:none;">
+      🗑️ Clear All
+    </button>
+  </div>
+
+  <!-- Favourites grid populated by JS -->
+  <div class="recipes-grid" id="favs-grid" aria-live="polite">
+    <!-- cards injected by JS -->
+  </div>
+
+  <!-- Empty state (hidden when there are favs) -->
+  <div class="empty-state" id="favs-empty" style="display:none;">
+    <div class="empty-icon">💔</div>
+    <h2 class="empty-title">No favourites yet</h2>
+    <p class="empty-desc">Browse recipes and tap ❤️ to save your favourites here.</p>
+    <a href="{{ url_for('main.index') }}" class="btn-primary">Discover Recipes</a>
+  </div>
+</section>
+
+<div id="emoji-float-container" aria-hidden="true"></div>
+
+<script>
+// Render saved favourites from localStorage
+function renderFavourites() {
+  const favs = JSON.parse(localStorage.getItem('cheflogic_favs') || '[]');
+  const grid = document.getElementById('favs-grid');
+  const empty = document.getElementById('favs-empty');
+  const count = document.getElementById('fav-count');
+  const clearBtn = document.getElementById('clear-favs-btn');
+
+  if (!favs.length) {
+    grid.innerHTML = '';
+    empty.style.display = 'flex';
+    count.textContent = '0 saved recipes';
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  clearBtn.style.display = 'inline-flex';
+  count.textContent = `${favs.length} saved recipe${favs.length !== 1 ? 's' : ''}`;
+
+  grid.innerHTML = favs.map(r => `
+    <article class="recipe-card" aria-label="${r.name}">
+      <div class="card-image-wrapper">
+        <img src="/static/${r.image_filename}" alt="${r.name}" class="card-image" loading="lazy"
+             onerror="this.src='/static/images/placeholder.png'">
+        <button class="fav-btn active" title="Remove from favourites"
+                onclick="removeFav(${r.id}, this.closest('article'))">❤️</button>
+      </div>
+      <div class="card-content">
+        <h2 class="card-title">
+          <a href="/recipe/${r.id}" class="card-title-link">${r.name}</a>
+        </h2>
+        ${r.description ? `<p class="card-description" style="font-size:.82rem;color:var(--text-secondary);line-height:1.4;">${r.description.slice(0,100)}${r.description.length>100?'…':''}</p>` : ''}
+        <div class="card-meta">
+          ${r.minutes ? `<span class="meta-item"><span class="meta-icon">⏱</span> ${r.minutes} min</span>` : ''}
+        </div>
+        <a href="/recipe/${r.id}" class="card-cta">View Recipe →</a>
+      </div>
+    </article>
+  `).join('');
+}
+
+function removeFav(id, card) {
+  let favs = JSON.parse(localStorage.getItem('cheflogic_favs') || '[]');
+  favs = favs.filter(r => r.id !== id);
+  localStorage.setItem('cheflogic_favs', JSON.stringify(favs));
+  card.style.animation = 'fadeOut 0.3s ease forwards';
+  setTimeout(() => renderFavourites(), 320);
+}
+
+function clearAllFavourites() {
+  if (!confirm('Remove all saved favourites?')) return;
+  localStorage.removeItem('cheflogic_favs');
+  renderFavourites();
+}
+
+document.addEventListener('DOMContentLoaded', renderFavourites);
+</script>
+{% endblock %}

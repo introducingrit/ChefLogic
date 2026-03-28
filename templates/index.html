@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}ChefLogic — Find Recipes by Ingredients, Dish Name, or Mood{% endblock %}
+
+{% block content %}
+<section class="hero" aria-labelledby="hero-heading">
+  <div class="hero-bg-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✨ AI-Powered Recipe Discovery</div>
+    <h1 id="hero-heading" class="hero-title">
+      Discover <span class="gradient-text">World Cuisines</span><br>in Seconds
+    </h1>
+    <p class="hero-subtitle">
+      Search by ingredients, dish name, or just your current <strong>mood</strong> — 400+ global recipes await.
+    </p>
+
+
+    {% if error %}
+    <div class="alert alert-error" role="alert" id="error-message">
+      <span class="alert-icon">⚠️</span>
+      <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <!-- Search Mode Tabs (3 tabs) -->
+    <div class="search-tabs" role="tablist" aria-label="Search mode">
+      <button class="search-tab active" id="tab-ingredients" role="tab" aria-selected="true"  aria-controls="panel-ingredients" type="button">🥕 By Ingredients</button>
+      <button class="search-tab"        id="tab-dish"        role="tab" aria-selected="false" aria-controls="panel-dish"        type="button">🍽️ By Dish Name</button>
+      <button class="search-tab"        id="tab-mood"        role="tab" aria-selected="false" aria-controls="panel-mood"        type="button">😋 By Mood</button>
+    </div>
+
+    <!-- ── Panel 1: Ingredient Search ── -->
+    <div class="search-panel" id="panel-ingredients" role="tabpanel" aria-labelledby="tab-ingredients">
+      <form action="{{ url_for('main.recommend') }}" method="POST" class="search-form" id="search-form" novalidate>
+
+        <div class="form-group">
+          <label for="ingredients" class="form-label">
+            Your Ingredients <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="input-icon">🥕</span>
+            <input
+              type="text"
+              id="ingredients"
+              name="ingredients"
+              class="form-input"
+              placeholder="e.g. mutton, garlic, onion, yogurt…"
+              autocomplete="off"
+              spellcheck="true"
+              maxlength="300"
+              required
+              aria-describedby="ingredients-hint"
+            />
+          </div>
+          <p class="form-hint" id="ingredients-hint">Separate multiple ingredients with commas. Max 20 ingredients.</p>
+          <div class="autocomplete-dropdown" id="autocomplete-dropdown" role="listbox" aria-label="Ingredient suggestions"></div>
+        </div>
+
+        <!-- Quick Add Chips -->
+        <div class="quick-add" aria-label="Quick add common ingredients">
+          <span class="quick-add-label">Quick add:</span>
+          <button type="button" class="chip" data-ingredient="mutton">🐐 mutton</button>
+          <button type="button" class="chip" data-ingredient="chicken">🍗 chicken</button>
+          <button type="button" class="chip" data-ingredient="prawn">🦐 prawn</button>
+          <button type="button" class="chip" data-ingredient="beef">🥩 beef</button>
+          <button type="button" class="chip" data-ingredient="paneer">🧀 paneer</button>
+          <button type="button" class="chip" data-ingredient="egg">🥚 egg</button>
+          <button type="button" class="chip" data-ingredient="garlic">🧄 garlic</button>
+          <button type="button" class="chip" data-ingredient="pasta">🍝 pasta</button>
+          <button type="button" class="chip" data-ingredient="tomato">🍅 tomato</button>
+          <button type="button" class="chip" data-ingredient="tofu">🟩 tofu</button>
+        </div>
+
+        <!-- Filters Row -->
+        <div class="filters-row">
+          <div class="filter-group">
+            <label for="cuisine" class="form-label">Cuisine</label>
+            <div class="select-wrapper">
+              <select id="cuisine" name="cuisine" class="form-select">
+                <option value="">Any cuisine</option>
+                <optgroup label="🌏 South &amp; Southeast Asia">
+                  <option value="indian">🇮🇳 Indian</option>
+                  <option value="kashmiri">Kashmiri</option>
+                  <option value="mughlai">Mughlai</option>
+                  <option value="hyderabadi">Hyderabadi</option>
+                  <option value="kerala">Kerala</option>
+                  <option value="goan">Goan</option>
+                  <option value="thai">🇹🇭 Thai</option>
+                  <option value="indonesian">🇮🇩 Indonesian</option>
+                  <option value="malaysian">🇲🇾 Malaysian</option>
+                  <option value="singaporean">🇸🇬 Singaporean</option>
+                  <option value="vietnamese">🇻🇳 Vietnamese</option>
+                  <option value="filipino">🇵🇭 Filipino</option>
+                </optgroup>
+                <optgroup label="🌏 East Asia">
+                  <option value="chinese">🇨🇳 Chinese</option>
+                  <option value="sichuan">Sichuan</option>
+                  <option value="japanese">🇯🇵 Japanese</option>
+                  <option value="korean">🇰🇷 Korean</option>
+                </optgroup>
+                <optgroup label="🌍 Middle East">
+                  <option value="middle-eastern">Middle Eastern</option>
+                  <option value="lebanese">🇱🇧 Lebanese</option>
+                  <option value="turkish">🇹🇷 Turkish</option>
+                  <option value="persian">🇮🇷 Persian / Iranian</option>
+                </optgroup>
+                <optgroup label="🌍 Africa">
+                  <option value="moroccan">🇲🇦 Moroccan</option>
+                  <option value="ethiopian">🇪🇹 Ethiopian</option>
+                  <option value="west-african">West African</option>
+                </optgroup>
+                <optgroup label="🌍 Mediterranean">
+                  <option value="mediterranean">Mediterranean</option>
+                  <option value="greek">🇬🇷 Greek</option>
+                  <option value="italian">🇮🇹 Italian</option>
+                  <option value="spanish">🇪🇸 Spanish</option>
+                  <option value="french">🇫🇷 French</option>
+                </optgroup>
+                <optgroup label="🌍 Europe">
+                  <option value="british">🇬🇧 British</option>
+                  <option value="german">🇩🇪 German</option>
+                  <option value="polish">🇵🇱 Polish</option>
+                  <option value="hungarian">🇭🇺 Hungarian</option>
+                  <option value="russian">🇷🇺 Russian</option>
+                  <option value="ukrainian">Ukrainian</option>
+                </optgroup>
+                <optgroup label="🌎 Americas">
+                  <option value="american">🇺🇸 American</option>
+                  <option value="mexican">🇲🇽 Mexican</option>
+                  <option value="brazilian">🇧🇷 Brazilian</option>
+                  <option value="peruvian">🇵🇪 Peruvian</option>
+                </optgroup>
+                <optgroup label="🌏 Other">
+                  <option value="bbq">🔥 BBQ</option>
+                  <option value="coastal">Coastal / Seafood</option>
+                </optgroup>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label for="dietary" class="form-label">Dietary</label>
+            <div class="select-wrapper">
+              <select id="dietary" name="dietary" class="form-select">
+                <option value="">No restriction</option>
+                <option value="vegetarian">🌿 Vegetarian</option>
+                <option value="vegan">🌱 Vegan</option>
+                <option value="gluten-free">🌾 Gluten-Free</option>
+                <option value="low-carb">💪 Low-Carb / Keto</option>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <label for="max_time" class="form-label">Max Time</label>
+            <div class="select-wrapper">
+              <select id="max_time" name="max_time" class="form-select">
+                <option value="">Any duration</option>
+                <option value="15">⚡ 15 min</option>
+                <option value="30">🕐 30 min</option>
+                <option value="60">🕐 1 hour</option>
+                <option value="120">🕑 2 hours</option>
+              </select>
+              <span class="select-arrow">▾</span>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="submit-btn">
+          <span class="btn-icon">🔍</span>
+          <span class="btn-text">Find Recipes</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ── Panel 2: Dish Name Search ── -->
+    <div class="search-panel hidden" id="panel-dish" role="tabpanel" aria-labelledby="tab-dish">
+      <form action="{{ url_for('main.search_dish') }}" method="POST" class="search-form" id="dish-search-form" novalidate>
+        <div class="form-group">
+          <label for="dish_name" class="form-label">
+            Dish Name <span class="required">*</span>
+          </label>
+          <div class="input-wrapper">
+            <span class="input-icon">🍽️</span>
+            <input
+              type="text"
+              id="dish_name"
+              name="dish_name"
+              class="form-input"
+              placeholder="e.g. Mutton Biryani, Ramen, Carbonara…"
+              autocomplete="off"
+              maxlength="200"
+              required
+            />
+          </div>
+          <p class="form-hint">Type the dish name you are looking for — we have 400+ global recipes!</p>
+          <div class="autocomplete-dropdown" id="dish-fuzzy-dropdown" role="listbox" aria-label="Dish suggestions"></div>
+        </div>
+
+        <!-- Popular Dish Quick-Picks -->
+        <div class="quick-add" aria-label="Quick dish picks">
+          <span class="quick-add-label">Popular:</span>
+          <button type="button" class="chip dish-chip" data-dish="Mutton Biryani">Mutton Biryani</button>
+          <button type="button" class="chip dish-chip" data-dish="Butter Chicken">Butter Chicken</button>
+          <button type="button" class="chip dish-chip" data-dish="Ramen">Ramen</button>
+          <button type="button" class="chip dish-chip" data-dish="Beef Stroganoff">Beef Stroganoff</button>
+          <button type="button" class="chip dish-chip" data-dish="Tiramisu">Tiramisu</button>
+          <button type="button" class="chip dish-chip" data-dish="Pad Thai">Pad Thai</button>
+          <button type="button" class="chip dish-chip" data-dish="Sushi Rolls">Sushi Rolls</button>
+          <button type="button" class="chip dish-chip" data-dish="Moussaka">Moussaka</button>
+        </div>
+
+        <button type="submit" class="btn-primary" id="dish-submit-btn">
+          <span class="btn-icon">🔎</span>
+          <span class="btn-text">Search Dish</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ── Panel 3: Mood Search ── -->
+    <div class="search-panel hidden" id="panel-mood" role="tabpanel" aria-labelledby="tab-mood">
+      <form action="{{ url_for('main.search_mood') }}" method="POST" class="search-form mood-form" id="mood-form" novalidate>
+        <p class="form-hint" style="margin-bottom: 20px; font-size: 1rem;">
+          What are you in the mood for today? Pick a craving ↓
+        </p>
+
+        <div class="mood-grid" id="mood-grid">
+          <label class="mood-card" data-mood="spicy">
+            <input type="radio" name="mood" value="spicy" required hidden>
+            <span class="mood-emoji">🌶️</span>
+            <span class="mood-label">Spicy &amp; Bold</span>
+            <span class="mood-desc">Fiery flavours</span>
+          </label>
+          <label class="mood-card" data-mood="sweet">
+            <input type="radio" name="mood" value="sweet" hidden>
+            <span class="mood-emoji">🍰</span>
+            <span class="mood-label">Sweets &amp; Desserts</span>
+            <span class="mood-desc">Indulge your sweet tooth</span>
+          </label>
+          <label class="mood-card" data-mood="comfort">
+            <input type="radio" name="mood" value="comfort" hidden>
+            <span class="mood-emoji">🍲</span>
+            <span class="mood-label">Comfort Food</span>
+            <span class="mood-desc">Warm &amp; hearty</span>
+          </label>
+          <label class="mood-card" data-mood="healthy">
+            <input type="radio" name="mood" value="healthy" hidden>
+            <span class="mood-emoji">🥗</span>
+            <span class="mood-label">Healthy &amp; Light</span>
+            <span class="mood-desc">Feel-good meals</span>
+          </label>
+          <label class="mood-card" data-mood="quick">
+            <input type="radio" name="mood" value="quick" hidden>
+            <span class="mood-emoji">⚡</span>
+            <span class="mood-label">Quick ≤ 30 min</span>
+            <span class="mood-desc">Fast &amp; delicious</span>
+          </label>
+          <label class="mood-card" data-mood="seafood">
+            <input type="radio" name="mood" value="seafood" hidden>
+            <span class="mood-emoji">🦐</span>
+            <span class="mood-label">Seafood Feast</span>
+            <span class="mood-desc">Fresh from the ocean</span>
+          </label>
+          <label class="mood-card" data-mood="vegetarian">
+            <input type="radio" name="mood" value="vegetarian" hidden>
+            <span class="mood-emoji">🌿</span>
+            <span class="mood-label">Vegetarian</span>
+            <span class="mood-desc">Plant-based delights</span>
+          </label>
+          <label class="mood-card" data-mood="street-food">
+            <input type="radio" name="mood" value="street-food" hidden>
+            <span class="mood-emoji">🌮</span>
+            <span class="mood-label">Street Food Vibes</span>
+            <span class="mood-desc">Bold global bites</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary" id="mood-submit-btn" style="margin-top: 28px;">
+          <span class="btn-icon">✨</span>
+          <span class="btn-text">Show Me Recipes</span>
+          <span class="btn-spinner" aria-hidden="true"></span>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<!-- Feature Cards -->
+<div class="features-grid" aria-label="Feature highlights">
+  <div class="feature-card">
+    <div class="feature-icon">🧠</div>
+    <h3 class="feature-title">AI-Powered</h3>
+    <p class="feature-desc">TF-IDF cosine similarity ranks recipes by ingredient relevance</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🌍</div>
+    <h3 class="feature-title">400+ World Recipes</h3>
+    <p class="feature-desc">From Rogan Josh to Bouillabaisse — every cuisine covered</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">😋</div>
+    <h3 class="feature-title">Search by Mood</h3>
+    <p class="feature-desc">Spicy, sweet, comfort, quick — find recipes by how you feel</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">⚡</div>
+    <h3 class="feature-title">Instant Results</h3>
+    <p class="feature-desc">Sub-second recommendations with real food photography</p>
+  </div>
+</div>
+
+<!-- Floating emoji container -->
+<div id="emoji-float-container" aria-hidden="true"></div>
+{% endblock %}

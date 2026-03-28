@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipe.name | title }} — ChefLogic{% endblock %}
+{% block meta_desc %}Recipe for {{ recipe.name | title }}. Cooking time: {{ recipe.minutes }} minutes. Full instructions and ingredient list.{% endblock %}
+
+{% block content %}
+<section class="detail-section" aria-labelledby="recipe-title">
+
+  <div class="detail-header">
+    <a href="javascript:history.back()" class="back-btn" aria-label="Go back">← Back</a>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- Left: Recipe Info -->
+    <article class="detail-main" aria-labelledby="recipe-title">
+      <div class="detail-badge-row">
+        {% if recipe.tags and recipe.tags is not string %}
+          {% for tag in recipe.tags[:5] %}
+          <span class="tag-pill">{{ tag }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Main Recipe Image -->
+      <div class="detail-hero-image">
+        <img src="{{ url_for('static', filename=recipe.image_filename) }}" alt="{{ recipe.name }}" class="hero-image" loading="lazy">
+      </div>
+
+      <h1 id="recipe-title" class="detail-title" style="margin-bottom: 0.75rem;">{{ recipe.name | title }}</h1>
+
+      <!-- Action Buttons -->
+      <div class="recipe-actions">
+        <button
+          class="action-btn fav-toggle-btn"
+          id="fav-btn"
+          onclick="toggleFavourite()"
+          title="Save to Favourites"
+          data-recipe-id="{{ recipe.id }}"
+          data-recipe-name="{{ recipe.name | title }}"
+          data-recipe-image="{{ recipe.image_filename }}"
+          data-recipe-desc="{{ recipe.description | default('') | truncate(120, true, '…') }}"
+          data-recipe-minutes="{{ recipe.minutes | default('') }}"
+        >
+          <span class="action-icon">🤍</span>
+          <span class="action-label">Save</span>
+        </button>
+        <button class="action-btn share-btn" id="share-btn" onclick="copyShareLink()" title="Copy share link">
+          <span class="action-icon">🔗</span>
+          <span class="action-label">Share</span>
+        </button>
+      </div>
+      <!-- Share toast -->
+      <div class="share-toast" id="share-toast">✅ Link copied to clipboard!</div>
+
+
+      {% if recipe.description %}
+      <p style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem;">
+        {{ recipe.description }}
+      </p>
+      {% endif %}
+
+      <!-- Metadata row -->
+      <div class="detail-meta-row">
+        {% if recipe.minutes %}
+        <div class="meta-card">
+          <span class="meta-card-icon">⏱</span>
+          <div>
+            <div class="meta-card-label">Cook Time</div>
+            <div class="meta-card-value">{{ recipe.minutes }} min</div>
+          </div>
+        </div>
+        {% endif %}
+        {% if recipe.ingredients %}
+        <div class="meta-card">
+          <span class="meta-card-icon">🥕</span>
+          <div>
+            <div class="meta-card-label">Ingredients</div>
+            <div class="meta-card-value">
+              {% if recipe.ingredients is string %}?{% else %}{{ recipe.ingredients | length }}{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+        {% if recipe.steps %}
+        <div class="meta-card">
+          <span class="meta-card-icon">📋</span>
+          <div>
+            <div class="meta-card-label">Steps</div>
+            <div class="meta-card-value">
+              {% if recipe.steps is string %}?{% else %}{{ recipe.steps | length }}{% endif %}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Ingredients -->
+      <div class="detail-section-card">
+        <h2 class="section-card-title">🛒 Ingredients</h2>
+        <ul class="ingredient-list" aria-label="Ingredients list">
+          {% if recipe.ingredients is string %}
+            <li>{{ recipe.ingredients }}</li>
+          {% else %}
+            {% for ing in recipe.ingredients %}
+            <li class="ingredient-item">
+              <span class="ingredient-bullet">•</span>
+              <span>{{ ing | capitalize }}</span>
+            </li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- Instructions -->
+      <div class="detail-section-card">
+        <h2 class="section-card-title">👨‍🍳 Instructions</h2>
+        <ol class="steps-list" aria-label="Cooking instructions">
+          {% if recipe.steps is string %}
+            <li>{{ recipe.steps }}</li>
+          {% else %}
+            {% for step in recipe.steps %}
+            <li class="step-item">
+              <span class="step-number">{{ loop.index }}</span>
+              <span class="step-text">{{ step | capitalize }}</span>
+            </li>
+            {% endfor %}
+          {% endif %}
+        </ol>
+      </div>
+    </article>
+
+    <!-- Right: Similar Recipes sidebar -->
+    <aside class="detail-sidebar" aria-labelledby="similar-heading">
+      <h2 id="similar-heading" class="sidebar-title">🍽 Similar Recipes</h2>
+      {% if similar %}
+        <div class="similar-list">
+          {% for s in similar %}
+          <a href="{{ url_for('main.detail', recipe_id=s.id) }}" class="similar-card" aria-label="{{ s.name }}">
+            <img src="{{ url_for('static', filename=s.image_filename) }}" alt="" class="similar-thumb" loading="lazy">
+            <div class="similar-info">
+              <span class="similar-name">{{ s.name | title }}</span>
+              <span class="similar-time">{% if s.minutes %}⏱ {{ s.minutes }}m{% endif %}</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="no-similar">No similar recipes found.</p>
+      {% endif %}
+
+      <div class="sidebar-cta">
+        <a href="{{ url_for('main.index') }}" class="btn-primary btn-sm">
+          🔍 New Search
+        </a>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<script>
+// ── Favourites (localStorage) ─────────────────────────────────────────────────
+const FAV_KEY = 'cheflogic_favs';
+
+function getFavs() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch { return []; }
+}
+function saveFavs(favs) {
+  localStorage.setItem(FAV_KEY, JSON.stringify(favs));
+}
+
+function initFavBtn() {
+  const btn = document.getElementById('fav-btn');
+  if (!btn) return;
+  const id = parseInt(btn.dataset.recipeId);
+  const isSaved = getFavs().some(r => r.id === id);
+  updateFavBtn(btn, isSaved);
+}
+
+function updateFavBtn(btn, saved) {
+  btn.querySelector('.action-icon').textContent = saved ? '❤️' : '🤍';
+  btn.querySelector('.action-label').textContent = saved ? 'Saved' : 'Save';
+  btn.classList.toggle('active', saved);
+}
+
+function toggleFavourite() {
+  const btn = document.getElementById('fav-btn');
+  const id = parseInt(btn.dataset.recipeId);
+  let favs = getFavs();
+  const isSaved = favs.some(r => r.id === id);
+
+  if (isSaved) {
+    favs = favs.filter(r => r.id !== id);
+  } else {
+    favs.push({
+      id,
+      name:           btn.dataset.recipeName,
+      image_filename: btn.dataset.recipeImage,
+      description:    btn.dataset.recipeDesc,
+      minutes:        btn.dataset.recipeMinutes,
+    });
+  }
+
+  saveFavs(favs);
+  updateFavBtn(btn, !isSaved);
+
+  // Pulse animation
+  btn.style.transform = 'scale(1.2)';
+  setTimeout(() => { btn.style.transform = ''; }, 200);
+}
+
+// ── Share Link ────────────────────────────────────────────────────────────────
+function copyShareLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    const toast = document.getElementById('share-toast');
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+  }).catch(() => {
+    // Fallback: prompt
+    window.prompt('Copy this link:', url);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initFavBtn);
+</script>
+{% endblock %}

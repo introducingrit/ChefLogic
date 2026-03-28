@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Results for "{{ query }}" — ChefLogic{% endblock %}
+{% block meta_desc %}Recipe results for: {{ query }}{% endblock %}
+
+{% block content %}
+<section class="results-section" aria-labelledby="results-heading">
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <a href="{{ url_for('main.index') }}" class="back-btn" aria-label="Back to search">
+      ← Back
+    </a>
+    <div class="results-meta">
+      <h1 id="results-heading" class="results-title">
+        {% if search_mode == 'name' %}
+          Recipes matching <span class="gradient-text">{{ query }}</span>
+          <span class="search-mode-tag">🍽️ Dish Search</span>
+        {% elif search_mode == 'mood' %}
+          <span class="gradient-text">{{ query }}</span>
+          <span class="mood-mode-tag">😋 Mood Match</span>
+        {% else %}
+          Recipes for <span class="gradient-text">{{ query }}</span>
+        {% endif %}
+      </h1>
+      {% if mood_description is defined and mood_description %}
+      <p style="color: var(--text-secondary); margin: 4px 0 8px; font-size: 0.92rem;">{{ mood_description }}</p>
+      {% endif %}
+      <p class="results-count">
+        {{ results|length }} recipe{{ 's' if results|length != 1 else '' }} found
+        {% if cuisine %}<span class="filter-badge">🍽 {{ cuisine }}</span>{% endif %}
+        {% if dietary %}<span class="filter-badge">🌿 {{ dietary }}</span>{% endif %}
+        {% if max_time %}<span class="filter-badge">⏱ {{ max_time }}min</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+
+  <!-- Substitution Suggestions (only for ingredient search) -->
+  {% if substitutions and search_mode != 'name' %}
+  <div class="substitutions-panel" aria-labelledby="subs-heading">
+    <h2 id="subs-heading" class="panel-title">💡 Ingredient Substitutions</h2>
+    <div class="subs-grid">
+      {% for ingredient, alternatives in substitutions.items() %}
+      <div class="sub-card">
+        <span class="sub-original">{{ ingredient }}</span>
+        <span class="sub-arrow">→</span>
+        <div class="sub-alternatives">
+          {% for alt in alternatives %}
+          <span class="alt-chip">{{ alt }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Recipe Results Grid -->
+  {% if results %}
+    {% if search_mode == 'name' or search_mode == 'mood' or search_mode == 'all' %}
+      <!-- ── Dish Name / Mood / Browse All Results: show ALL matches ── -->
+      <h2 class="section-title" style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">
+        {% if search_mode == 'mood' %}
+          😋 {{ results|length }} Recipe{{ 's' if results|length != 1 else '' }} for Your Mood
+        {% elif search_mode == 'all' %}
+          🌍 {{ results|length }} Recipe{{ 's' if results|length != 1 else '' }} — Full Collection
+        {% else %}
+          🍽️ {{ results|length }} Dish{{ 'es' if results|length != 1 else '' }} Found
+        {% endif %}
+      </h2>
+      <div class="recipes-grid" aria-label="{{ 'Mood' if search_mode == 'mood' else 'All' if search_mode == 'all' else 'Dish name' }} search results">
+        {% for recipe in results %}
+        <article class="recipe-card" aria-labelledby="recipe-{{ recipe.id }}">
+          <div class="card-image-wrapper">
+            <img src="{{ url_for('static', filename=recipe.image_filename) }}" alt="{{ recipe.name }}" class="card-image" loading="lazy">
+            <div class="score-badge" title="Match score: {{ recipe.similarity_score }}%">
+              <span class="score-value">{{ recipe.similarity_score | int }}</span>
+              <span class="score-label">%</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags" style="margin-bottom: 0.5rem;">
+              {% if recipe.tags %}
+                {% set tag_list = recipe.tags if recipe.tags is not string else [] %}
+                {% for tag in tag_list[:3] %}
+                <span class="tag-pill">{{ tag }}</span>
+                {% endfor %}
+              {% endif %}
+              {% if search_mode == 'mood' %}
+              <span class="tag-pill" style="background:rgba(253,160,60,0.20);color:#fda03c;">😋 Mood</span>
+              {% else %}
+              <span class="tag-pill" style="background:rgba(124,58,237,0.25);color:#a78bfa;">Match</span>
+              {% endif %}
+            </div>
+
+            <h2 id="recipe-{{ recipe.id }}" class="card-title">
+              <a href="{{ url_for('main.detail', recipe_id=recipe.id) }}" class="card-title-link">
+                {{ recipe.name | title }}
+              </a>
+            </h2>
+
+            {% if recipe.description %}
+            <p class="card-description" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; line-height: 1.4;">
+              {{ recipe.description }}
+            </p>
+            {% endif %}
+
+            <div class="card-meta">
+              {% if recipe.minutes %}
+              <span class="meta-item">
+                <span class="meta-icon">⏱</span> {{ recipe.minutes }} min
+              </span>
+              {% endif %}
+            </div>
+
+            <a href="{{ url_for('main.detail', recipe_id=recipe.id) }}" class="card-cta">
+              View Recipe →
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <!-- ── Ingredient-Based Search Results ── -->
+      {% set exact_matches = results | selectattr("is_high_match", "equalto", true) | list %}
+
+      {% if exact_matches %}
+      <h2 class="section-title" style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.25rem;">✨ Your Matched Recipes</h2>
+      <div class="recipes-grid" aria-label="Ingredient matched recipes">
+        {% for recipe in exact_matches %}
+        <article class="recipe-card" aria-labelledby="recipe-{{ recipe.id }}">
+          <div class="card-image-wrapper">
+            <img src="{{ url_for('static', filename=recipe.image_filename) }}" alt="{{ recipe.name }}" class="card-image" loading="lazy">
+            <div class="score-badge" title="Match score: {{ recipe.similarity_score }}%">
+              <span class="score-value">{{ recipe.similarity_score | int }}</span>
+              <span class="score-label">%</span>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="card-tags" style="margin-bottom: 0.5rem;">
+              {% if recipe.tags %}
+                {% set tag_list = recipe.tags if recipe.tags is not string else [] %}
+                {% for tag in tag_list[:3] %}
+                <span class="tag-pill">{{ tag }}</span>
+                {% endfor %}
+              {% endif %}
+              <span class="tag-pill" style="background:rgba(253,160,60,0.25);color:#fda03c;">Match</span>
+            </div>
+
+            <h2 id="recipe-{{ recipe.id }}" class="card-title">
+              <a href="{{ url_for('main.detail', recipe_id=recipe.id) }}" class="card-title-link">
+                {{ recipe.name | title }}
+              </a>
+            </h2>
+
+            {% if recipe.description %}
+            <p class="card-description" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 4px; line-height: 1.4;">
+              {{ recipe.description }}
+            </p>
+            {% endif %}
+
+            <div class="card-meta">
+              {% if recipe.minutes %}
+              <span class="meta-item">
+                <span class="meta-icon">⏱</span> {{ recipe.minutes }} min
+              </span>
+              {% endif %}
+            </div>
+
+            <a href="{{ url_for('main.detail', recipe_id=recipe.id) }}" class="card-cta">
+              View Recipe →
+            </a>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state" role="status">
+        <div class="empty-icon">🔍</div>
+        <h2 class="empty-title">No exact ingredient matches found</h2>
+        <p class="empty-desc">We couldn't find recipes with those specific ingredients. Try the <strong>Dish Name</strong> tab to search directly, or adjust your ingredients.</p>
+        <a href="{{ url_for('main.index') }}" class="btn-primary">Try Again</a>
+      </div>
+      {% endif %}
+    {% endif %}
+
+  {% else %}
+  <div class="empty-state" role="status">
+    <div class="empty-icon">🍽️</div>
+    <h2 class="empty-title">No recipes found for "{{ query }}"</h2>
+    <p class="empty-desc">
+      {% if search_mode == 'name' %}
+        We don't have a recipe named that yet. Try a partial name, e.g. "Biryani" instead of "Chicken Biryani".
+      {% else %}
+        Try adjusting your filters or using different ingredients.
+      {% endif %}
+    </p>
+    <a href="{{ url_for('main.index') }}" class="btn-primary">Try Again</a>
+  </div>
+  {% endif %}
+
+</section>
+
+<!-- Floating emoji container (reuse from index) -->
+<div id="emoji-float-container" aria-hidden="true"></div>
+{% endblock %}

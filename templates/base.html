@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ChefLogic — AI Recipe Recommender{% endblock %}</title>
+  <meta name="description" content="{% block meta_desc %}Discover personalised recipes powered by AI ingredient matching. Enter what you have and ChefLogic finds the perfect dish.{% endblock %}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/7.0.0/fuse.min.js" defer></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- Animated gradient background -->
+<div class="bg-gradient" aria-hidden="true"></div>
+<div class="bg-blobs" aria-hidden="true">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="navbar" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+
+    <!-- Brand: left side -->
+    <a href="{{ url_for('main.index') }}" class="nav-brand" aria-label="ChefLogic home">
+      <span class="brand-icon">🍳</span>
+      <span class="brand-text-block">
+        <span class="brand-name">ChefLogic</span>
+        <span class="brand-tagline">AI Recipe Discovery</span>
+      </span>
+    </a>
+
+    <!-- Actions: right side -->
+    <div class="nav-actions">
+
+      <!-- All Recipes link removed to match design -->
+
+      <!-- Favourites link (always visible, count shown when > 0) -->
+      <a href="{{ url_for('main.favourites') }}"
+         class="nav-action-link nav-fav-link {% if request.endpoint == 'main.favourites' %}active{% endif %}"
+         id="nav-fav-link" aria-label="My Favourites">
+        ❤️ <span id="nav-fav-count" class="nav-fav-count"></span>
+      </a>
+
+      <!-- Menu button + dropdown -->
+      <div class="nav-menu-wrapper" id="settings-wrapper">
+        <button class="nav-menu-btn" id="settings-btn"
+                aria-label="Open menu" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+
+        <!-- Dropdown -->
+        <div class="nav-dropdown" id="settings-menu" role="menu" aria-label="Navigation menu">
+          <a href="{{ url_for('main.index') }}"
+             class="nav-dropdown-item {% if request.endpoint == 'main.index' %}nav-dropdown-item--active{% endif %}"
+             role="menuitem">🏠 Home</a>
+          <a href="{{ url_for('main.favourites') }}"
+             class="nav-dropdown-item {% if request.endpoint == 'main.favourites' %}nav-dropdown-item--active{% endif %}"
+             role="menuitem">❤️ My Favourites</a>
+          <a href="{{ url_for('main.index') }}#panel-mood"
+             class="nav-dropdown-item" role="menuitem"
+             onclick="sessionStorage.setItem('openTab','mood')">😋 Mood Search</a>
+          <a href="{{ url_for('main.all_recipes') }}"
+             class="nav-dropdown-item {% if request.endpoint == 'main.all_recipes' %}nav-dropdown-item--active{% endif %}"
+             role="menuitem">🌍 Browse All</a>
+          <div class="nav-dropdown-divider"></div>
+          <a href="{{ url_for('api.health') }}"
+             class="nav-dropdown-item" role="menuitem" target="_blank" rel="noopener">🔌 API Status</a>
+        </div>
+      </div>
+
+    </div><!-- /nav-actions -->
+  </div><!-- /nav-inner -->
+</nav>
+
+<!-- Main content -->
+<main class="main-content" id="main">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <p class="footer-text">
+      <span>🍳</span> <strong>ChefLogic</strong> — TF-IDF powered recipes &nbsp;·&nbsp;
+      Built with Flask · scikit-learn · Pandas
+    </p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

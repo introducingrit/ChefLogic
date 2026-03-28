@@ -1,0 +1,27 @@
+# requirements.txt — ChefLogic
+
+# ── Web Framework ────────────────────────────────────────────
+flask==3.0.3
+Werkzeug==3.0.3
+Jinja2==3.1.4
+click>=8.1.7
+itsdangerous==2.2.0
+gunicorn==22.0.0
+
+# ── Data & ML ────────────────────────────────────────────────
+pandas>=2.2.2
+scikit-learn>=1.5.0
+numpy>=1.26.0
+scipy>=1.13.1
+joblib>=1.4.2
+threadpoolctl>=3.5.0
+
+# ── Image Handling ───────────────────────────────────────────
+Pillow>=10.3.0
+requests>=2.31.0
+
+# ── Image Search (scripts only) ──────────────────────────────
+ddgs>=6.0.0
+
+# ── Testing ──────────────────────────────────────────────────
+pytest>=8.2.0
