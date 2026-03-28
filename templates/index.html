@@ -6,27 +6,24 @@
 <section class="hero" aria-labelledby="hero-heading">
   <div class="hero-bg-overlay"></div>
   <div class="hero-content">
-    <div class="hero-badge">✨ AI-Powered Recipe Discovery</div>
-    <h1 id="hero-heading" class="hero-title">
-      Discover <span class="gradient-text">World Cuisines</span><br>in Seconds
-    </h1>
-    <p class="hero-subtitle">
-      Search by ingredients, dish name, or just your current <strong>mood</strong> — 400+ global recipes await.
-    </p>
-
-
-    {% if error %}
-    <div class="alert alert-error" role="alert" id="error-message">
-      <span class="alert-icon">⚠️</span>
-      <span>{{ error }}</span>
+    <div class="hero-header-box">
+      <div class="hero-badge">✨ AI-Powered Recipe Discovery</div>
+      <h1 id="hero-heading" class="hero-title">
+        Discover <span class="gradient-text">World Cuisines</span><br>in Seconds
+      </h1>
+      <p class="hero-subtitle">
+        Search by ingredients, dish name, or just your current <strong>mood</strong> — 400+ global recipes await.
+      </p>
     </div>
-    {% endif %}
 
-    <!-- Search Mode Tabs (3 tabs) -->
-    <div class="search-tabs" role="tablist" aria-label="Search mode">
-      <button class="search-tab active" id="tab-ingredients" role="tab" aria-selected="true"  aria-controls="panel-ingredients" type="button">🥕 By Ingredients</button>
-      <button class="search-tab"        id="tab-dish"        role="tab" aria-selected="false" aria-controls="panel-dish"        type="button">🍽️ By Dish Name</button>
-      <button class="search-tab"        id="tab-mood"        role="tab" aria-selected="false" aria-controls="panel-mood"        type="button">😋 By Mood</button>
+    <!-- Modern Segmented Search Tabs -->
+    <div class="search-tabs-container">
+      <div class="search-tabs" role="tablist" aria-label="Search mode">
+        <button class="search-tab active" id="tab-ingredients" role="tab" aria-selected="true"  aria-controls="panel-ingredients" type="button">🥕 Ingredients</button>
+        <button class="search-tab"        id="tab-dish"        role="tab" aria-selected="false" aria-controls="panel-dish"        type="button">🍽️ Dish Name</button>
+        <button class="search-tab"        id="tab-mood"        role="tab" aria-selected="false" aria-controls="panel-mood"        type="button">😋 Mood</button>
+        <div class="tab-slider" aria-hidden="true"></div>
+      </div>
     </div>
 
     <!-- ── Panel 1: Ingredient Search ── -->

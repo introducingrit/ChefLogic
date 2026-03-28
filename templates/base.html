@@ -26,8 +26,15 @@
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
 
-    <!-- Brand: left side -->
-    <a href="{{ url_for('main.index') }}" class="nav-brand" aria-label="ChefLogic home">
+    <div class="nav-left">
+      <a href="{{ url_for('main.all_recipes') }}"
+         class="nav-action-link nav-pill nav-browse-pill {% if request.endpoint == 'main.all_recipes' %}nav-pill-active{% endif %}">
+         <span class="action-icon">🌍</span> <span class="nav-pill-label">All Recipes</span>
+      </a>
+    </div>
+
+    <!-- Brand: centered -->
+    <a href="{{ url_for('main.index') }}" class="nav-brand centered" aria-label="ChefLogic home">
       <span class="brand-icon">🍳</span>
       <span class="brand-text-block">
         <span class="brand-name">ChefLogic</span>
@@ -35,25 +42,21 @@
       </span>
     </a>
 
-    <!-- Actions: right side -->
-    <div class="nav-actions">
-
-      <!-- All Recipes link removed to match design -->
-
-      <!-- Favourites link (always visible, count shown when > 0) -->
+    <div class="nav-right">
       <a href="{{ url_for('main.favourites') }}"
-         class="nav-action-link nav-fav-link {% if request.endpoint == 'main.favourites' %}active{% endif %}"
+         class="nav-action-link nav-fav-link nav-pill {% if request.endpoint == 'main.favourites' %}active{% endif %}"
          id="nav-fav-link" aria-label="My Favourites">
-        ❤️ <span id="nav-fav-count" class="nav-fav-count"></span>
+        <span class="action-icon">❤️</span> <span id="nav-fav-count" class="nav-fav-count"></span>
       </a>
 
-      <!-- Menu button + dropdown -->
       <div class="nav-menu-wrapper" id="settings-wrapper">
         <button class="nav-menu-btn" id="settings-btn"
                 aria-label="Open menu" aria-expanded="false">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
         </button>
 
@@ -76,7 +79,6 @@
              class="nav-dropdown-item" role="menuitem" target="_blank" rel="noopener">🔌 API Status</a>
         </div>
       </div>
-
     </div><!-- /nav-actions -->
   </div><!-- /nav-inner -->
 </nav>
