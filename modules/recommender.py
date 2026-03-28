@@ -26,7 +26,8 @@ MOOD_MAP = {
                      'cookie', 'brownie', 'ice cream', 'tiramisu', 'pudding', 'halwa',
                      'gulab', 'ladoo', 'barfi', 'tart', 'mousse', 'cheesecake',
                      'fudge', 'caramel', 'maple', 'waffle', 'pancake', 'custard',
-                     'muffin', 'donut', 'pie', 'sorbet', 'baklava', 'syrup'],
+                     'muffin', 'donut', 'pie', 'sorbet', 'baklava', 'syrup',
+                     'mochi', 'rasgulla', 'gulab jamun', 'kheer', 'shrikhand'],
         'description': 'Indulge your sweet tooth!',
     },
     'comfort': {

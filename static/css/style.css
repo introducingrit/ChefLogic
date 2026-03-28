@@ -105,6 +105,12 @@ img { max-width: 100%; display: block; }
   align-items: center;
   justify-content: space-between;
 }
+.navbar--compact {
+  padding: 12px 32px;
+}
+.navbar--compact .nav-inner {
+  height: 60px;
+}
 
 .nav-inner {
   max-width: 1400px;

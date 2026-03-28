@@ -23,7 +23,7 @@
 </div>
 
 <!-- Navigation -->
-<nav class="navbar" role="navigation" aria-label="Main navigation">
+<nav class="navbar {% if request.endpoint != 'main.index' %}navbar--compact{% endif %}" role="navigation" aria-label="Main navigation">
   <div class="nav-inner">
 
     <!-- Brand: centered (Only on Home) -->
