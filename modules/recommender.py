@@ -27,7 +27,7 @@ MOOD_MAP = {
                      'gulab', 'ladoo', 'barfi', 'tart', 'mousse', 'cheesecake',
                      'fudge', 'caramel', 'maple', 'waffle', 'pancake', 'custard',
                      'muffin', 'donut', 'pie', 'sorbet', 'baklava', 'syrup',
-                     'mochi', 'rasgulla', 'gulab jamun', 'kheer', 'shrikhand'],
+                     'mochi', 'rasgulla', 'gulab jamun', 'kheer', 'shrikhand', 'sweet'],
         'description': 'Indulge your sweet tooth!',
     },
     'comfort': {
@@ -197,18 +197,38 @@ class Recommender:
 
         # Score each recipe by how many mood keywords appear in its name + ingredient_text
         def score_row(row):
-            haystack = (str(row.get('name', '')) + ' ' + str(row.get('ingredient_text', ''))).lower()
+            name = str(row.get('name', '')).lower()
+            tags = [str(t).lower() for t in row.get('tags', [])]
+            ingred_text = str(row.get('ingredient_text', '')).lower()
+            haystack = (name + ' ' + ingred_text).lower()
             haystack_words = haystack.replace(',', ' ').replace('.', ' ').split()
 
-            # Strict exclusion for desserts: if it has meat, it's not a dessert mood
+            # --- STRICT CATEGORY CHECKS ---
             if mood_key == 'sweet':
-                MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
-                                 'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
-                if any(mk in haystack for mk in MEAT_KEYWORDS):
+                # Only allow if explicitly tagged as dessert or has high-conf keywords AND NO meat
+                is_dessert_tag = 'category:dessert' in tags
+                if not is_dessert_tag:
+                    # Fallback for untagged: must have at least one keyword and NO meat
+                    MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
+                                     'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
+                    if any(mk in haystack for mk in MEAT_KEYWORDS):
+                        return 0
+                    if not any(kw in name or kw in tags for kw in keywords):
+                        return 0
+            
+            if mood_key == 'beverages':
+                # Only allow if explicitly tagged as beverage
+                if 'category:beverage' not in tags:
                     return 0
 
-            # Score based on full word matches to avoid "tart" matching "tartare"
-            return sum(1 for kw in keywords if kw.lower() in haystack_words or f" {kw.lower()} " in f" {haystack} ")
+            # --- SCORING ---
+            base_score = 0
+            # Extra weight for category match
+            if mood_key == 'sweet' and 'category:dessert' in tags: base_score += 5
+            if mood_key == 'beverages' and 'category:beverage' in tags: base_score += 5
+
+            keyword_score = sum(1 for kw in keywords if kw.lower() in haystack_words or f" {kw.lower()} " in f" {haystack} ")
+            return base_score + keyword_score
 
         df = df.copy()
         df['_mood_score'] = df.apply(score_row, axis=1)
