@@ -7,62 +7,50 @@ import pandas as pd
 PROJECT_ROOT = Path(r'c:\Users\RITAJA\Downloads\ChefLogic')
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from modules.data_loader import load_recipes
-from modules.preprocessor import preprocess_dataframe
-from modules.recommender import MOOD_MAP
+# Manual initialization of Recommender
+from modules.recommender import Recommender
 
-def test_sweet_mood():
-    print("Loading data...")
-    df = load_recipes()
-    df = preprocess_dataframe(df)
+def test_global_search_consistency():
+    print("--- Testing Global Search Consistency ---")
     
-    mood_key = 'sweet'
-    mood = MOOD_MAP[mood_key]
-    keywords = mood['keywords']
+    recommender = Recommender()
+    recommender.load()
     
-    MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
-                     'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
+    # 1. Test Dish Name Search for "dessert"
+    print("\nTesting Dish Name Search: 'dessert'")
+    results = recommender.search_by_name("dessert")
+    found_savory = [r['name'] for r in results if any(mk in r['name'].lower() for mk in ['chicken', 'beef', 'pork', 'fish'])]
+    if found_savory:
+        print(f"FAILED: Found savory dishes in dessert name search: {found_savory}")
+    else:
+        print(f"PASSED: No savory dishes found in dessert name search. Count: {len(results)}")
 
-    problematic_dishes = [
-        "Restaurant Style Butter Chicken",
-        "Authentic Pad Thai",
-        "Paneer Butter Masala",
-        "Classic Chicken Tikka Masala",
-        "Beef Burger With Caramelised Onions",
-        "Sweet And Sour Pork",
-        "Crab Cakes",
-        "Steak Tartare",
-        "Honey Walnut Shrimp"
-    ]
+    # 2. Test Ingredient Search for "chocolate"
+    print("\nTesting Ingredient Search: 'chocolate'")
+    results = recommender.recommend("chocolate")
+    found_savory = [r['name'] for r in results if any(mk in r['name'].lower() for mk in ['chicken', 'beef', 'pork', 'fish'])]
+    if found_savory:
+        print(f"FAILED: Found savory dishes in chocolate ingredient search: {found_savory}")
+    else:
+        print(f"PASSED: No savory dishes found in chocolate ingredient search. Count: {len(results)}")
 
-    def score_row(row):
-        name = str(row.get('name', '')).lower()
-        ingreds = str(row.get('ingredient_text', '')).lower()
-        haystack = f"{name} {ingreds}"
-        haystack_words = haystack.replace(',', ' ').replace('.', ' ').split()
-        
-        # Meat check
-        has_meat = any(mk in haystack for mk in MEAT_KEYWORDS)
-        
-        score = sum(1 for kw in keywords if kw.lower() in haystack_words or f" {kw.lower()} " in f" {haystack} ")
-        
-        # Result to return for debugging
-        return score, has_meat, haystack
+    # 3. Test Dish Name Search for "sweet"
+    print("\nTesting Dish Name Search: 'sweet'")
+    results = recommender.search_by_name("sweet")
+    is_sp_present = any("sweet and sour pork" in r['name'].lower() for r in results)
+    if is_sp_present:
+        print("FAILED: Found 'Sweet and Sour Pork' in sweet name search.")
+    else:
+        print(f"PASSED: 'Sweet and Sour Pork' excluded. Count: {len(results)}")
 
-    print(f"\nEvaluating mood: {mood_key}")
-    print(f"{'Dish Name':<40} | {'Score':<5} | {'Has Meat':<8} | {'Matches'}")
-    print("-" * 80)
-    
-    for dish in problematic_dishes:
-        match = df[df['name'].str.lower() == dish.lower()]
-        if match.empty:
-            print(f"{dish:<40} | NOT FOUND")
-            continue
-        
-        row = match.iloc[0]
-        score, has_meat, haystack = score_row(row)
-        
-        matches = [kw for kw in keywords if kw.lower() in haystack]
-        print(f"{dish:<40} | {score:<5} | {has_meat:<8} | {matches}")
+    # 4. Test Mood Search for "sweet"
+    print("\nTesting Mood Search: 'sweet'")
+    results = recommender.search_by_mood("sweet")
+    found_savory = [r['name'] for r in results if any(mk in r['name'].lower() for mk in ['chicken', 'beef', 'pork', 'fish'])]
+    if found_savory:
+        print(f"FAILED: Found savory dishes in sweet mood search: {found_savory}")
+    else:
+        print(f"PASSED: No savory dishes found in sweet mood search. Count: {len(results)}")
 
-test_sweet_mood()
+if __name__ == "__main__":
+    test_global_search_consistency()

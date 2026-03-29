@@ -103,6 +103,17 @@ class Recommender:
         )
         return r
 
+    def _detect_category_intent(self, query: str) -> str:
+        """Identify if a user query implies a specific category like dessert or beverage."""
+        q = query.lower().strip()
+        # High-confidence dessert keywords
+        if any(k in q for k in ['dessert', 'sweet', 'cake', 'chocolate', 'pudding', 'cookie', 'pastry', 'ice cream', 'halwa']):
+            return 'category:dessert'
+        # High-confidence beverage keywords
+        if any(k in q for k in ['drink', 'beverage', 'juice', 'shake', 'coffee', 'tea', 'mocktail', 'smoothie']):
+            return 'category:beverage'
+        return None
+
     def recommend(
         self,
         raw_input: str,
@@ -113,7 +124,24 @@ class Recommender:
     ) -> list:
         """Return top-n recipe dicts ranked by cosine similarity."""
         query_text = preprocess_user_input(raw_input)
+        
+        # --- INTENT-BASED FILTERING ---
+        intent = self._detect_category_intent(raw_input)
         filtered_df = apply_filters(self.df, cuisine, dietary, max_time)
+        
+        if intent:
+            # If the user specifically mentions a category, strictly limit to that category
+            # and exclude any meat-based dishes for desserts
+            mask = filtered_df['tags'].apply(lambda t: intent in t)
+            
+            # Extra safety for desserts
+            if intent == 'category:dessert':
+                MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
+                                 'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
+                name_mask = ~filtered_df['name'].str.lower().str.contains('|'.join(MEAT_KEYWORDS))
+                mask &= name_mask
+            
+            filtered_df = filtered_df[mask]
 
         if filtered_df.empty:
             return []
@@ -148,16 +176,29 @@ class Recommender:
             return []
 
         q = query.strip().lower()
-        names = self.df['name'].str.lower()
+        
+        # --- INTENT-BASED FILTERING ---
+        intent = self._detect_category_intent(q)
+        search_df = self.df
+        if intent:
+            mask = search_df['tags'].apply(lambda t: intent in t)
+            if intent == 'category:dessert':
+                MEAT_KEYWORDS = ['chicken', 'beef', 'lamb', 'mutton', 'pork', 'fish', 'seafood',
+                                 'shrimp', 'prawn', 'crab', 'lobster', 'duck', 'turkey', 'meat', 'steak']
+                name_mask = ~search_df['name'].str.lower().str.contains('|'.join(MEAT_KEYWORDS))
+                mask &= name_mask
+            search_df = search_df[mask]
+
+        names = search_df['name'].str.lower()
 
         exact_mask = names == q
         starts_mask = names.str.startswith(q) & ~exact_mask
         contains_mask = names.str.contains(q, na=False) & ~exact_mask & ~starts_mask
 
         combined = pd.concat([
-            self.df[exact_mask],
-            self.df[starts_mask],
-            self.df[contains_mask]
+            search_df[exact_mask],
+            search_df[starts_mask],
+            search_df[contains_mask]
         ]).head(top_n)
 
         result_list = combined.to_dict(orient='records')
