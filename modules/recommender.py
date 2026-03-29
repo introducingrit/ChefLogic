@@ -143,6 +143,19 @@ class Recommender:
             
             filtered_df = filtered_df[mask]
 
+        # --- STRICT INGREDIENT FILTERING ---
+        # Ensure that every single cleaned word from the user's query is present in the recipe's text.
+        # We check against 'ingredient_text' and 'steps' (which, when combined, offer full cooking process coverage).
+        query_words = set(query_text.split())
+        if query_words:
+            def strict_match(row):
+                # We combine the pre-cleaned ingredient_text and the raw raw steps.
+                full_text = (str(row.get('ingredient_text', '')) + ' ' + str(row.get('steps', '')).lower())
+                return all(qw in full_text for qw in query_words)
+            
+            strict_mask = filtered_df.apply(strict_match, axis=1)
+            filtered_df = filtered_df[strict_mask]
+
         if filtered_df.empty:
             return []
 
